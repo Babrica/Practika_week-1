@@ -1,3 +1,6 @@
+let eventBus = new Vue()
+
+
 Vue.component('product-review',
     {
         template: `
@@ -129,7 +132,7 @@ Vue.component('product-tabs',
         {
             return {
                 tabs: ['Reviews', 'Make a Review', 'Shipping', 'Details'],
-                selectedTab: 'Reviews'  // ��������������� � ������� @click
+                selectedTab: 'Reviews'
             }
         },
         props:
@@ -224,93 +227,98 @@ Vue.component('product',
     <product-tabs :premium="premium" :reviews="reviews"></product-tabs>
  </div>
 `,
-        data()
+data()
+{
+    return {
+        product: "Socks",
+        brand: 'Vue Mastery',
+        selectedVariant: 0,
+        altText: "A pair of socks",
+        details: ['80% cotton', '20% polyester', 'Gender-neutral'],
+        link: "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks",
+        inventory: 100,
+        onSale: true,
+        details: ['80% cotton', '20% polyester', 'Gender-neutral'],
+        variants:
+            [
+                {
+                    variantId: 2234,
+                    variantColor: 'green',
+                    variantImage: "./assets/vmSocks-green-onWhite.jpg",
+                    variantQuantity: 10
+                },
+                {
+                    variantId: 2235,
+                    variantColor: 'blue',
+                    variantImage: "./assets/vmSocks-blue-onWhite.jpg",
+                    variantQuantity: 0
+                }
+            ],
+        sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
+        reviews: []
+    }
+},
+methods:
+    {
+        addToCart()
         {
-            return {
-                product: "Socks",
-                brand: 'Vue Mastery',
-                selectedVariant: 0,
-                altText: "A pair of socks",
-                details: ['80% cotton', '20% polyester', 'Gender-neutral'],
-                link: "https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=socks",
-                inventory: 100,
-                onSale: true,
-                details: ['80% cotton', '20% polyester', 'Gender-neutral'],
-                variants:
-                    [
-                        {
-                            variantId: 2234,
-                            variantColor: 'green',
-                            variantImage: "./assets/vmSocks-green-onWhite.jpg",
-                            variantQuantity: 10
-                        },
-                        {
-                            variantId: 2235,
-                            variantColor: 'blue',
-                            variantImage: "./assets/vmSocks-blue-onWhite.jpg",
-                            variantQuantity: 0
-                        }
-                    ],
-                sizes: ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'],
-                reviews: []
+            this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
+        },
+        deleteCart()
+        {
+            this.$emit('delete-cart', this.variants[this.selectedVariant].variantId);
+        },
+        updateProduct(index) {
+            this.selectedVariant = index;
+        },
+        addReview(productReview) {
+            this.reviews.push(productReview)
+        },
+    },
+computed:
+    {
+        title()
+        {
+            return this.brand + ' ' + this.product;
+        },
+        image()
+        {
+            return this.variants[this.selectedVariant].variantImage;
+        },
+        inStock()
+        {
+            return this.variants[this.selectedVariant].variantQuantity
+        },
+        shipping()
+        {
+            if (this.premium)
+            {
+                return "Free";
+            }
+            else
+            {
+                return 2.99
             }
         },
-        methods:
+        sale()
+        {
+            if(this.onSale == true)
             {
-                addToCart()
-                {
-                    this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId);
-                },
-                deleteCart()
-                {
-                    this.$emit('delete-cart', this.variants[this.selectedVariant].variantId);
-                },
-                updateProduct(index) {
-                    this.selectedVariant = index;
-                },
-                addReview(productReview) {
-                    this.reviews.push(productReview)
-                },
-            },
-        computed:
+                return 'Currently there is a sale on ' + this.brand + ' ' + this.product;
+            }
+            else
             {
-                title()
-                {
-                    return this.brand + ' ' + this.product;
-                },
-                image()
-                {
-                    return this.variants[this.selectedVariant].variantImage;
-                },
-                inStock()
-                {
-                    return this.variants[this.selectedVariant].variantQuantity
-                },
-                shipping()
-                {
-                    if (this.premium)
-                    {
-                        return "Free";
-                    }
-                    else
-                    {
-                        return 2.99
-                    }
-                },
-                sale()
-                {
-                    if(this.onSale == true)
-                    {
-                        return 'Currently there is a sale on ' + this.brand + ' ' + this.product;
-                    }
-                    else
-                    {
-                        return 'There is currently no sale on ' + this.brand + ' ' + this.product;
-                    }
+                return 'There is currently no sale on ' + this.brand + ' ' + this.product;
+            }
 
-                },
-            },
-    })
+        },
+    },
+    mounted() {
+        eventBus.$on('review-submitted', productReview => {
+            this.reviews.push(productReview)
+        })
+    },
+})
 
 let app = new Vue
 ({
@@ -320,22 +328,14 @@ let app = new Vue
         cart: []
     },
     methods:
+    {
+        updateCart(id)
         {
-            updateCart(id)
-            {
-                this.cart.push(id);
-            },
-            deleteCart()
-            {
-                this.cart.pop();
-            },
-        }
+            this.cart.push(id);
+        },
+        deleteCart()
+        {
+            this.cart.pop();
+        },
+    }
 })
-
-
-
-
-
-
-
-
